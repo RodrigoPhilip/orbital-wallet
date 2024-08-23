@@ -20,8 +20,8 @@ export const LoaderContainer = styled.div`
 `;
 
 export const Loader = styled.div<ColorThemeProps>`
-  border: 0.5rem solid ${({ theme }) => theme.white + '50'};
-  border-top: 0.5rem solid ${({ theme }) => theme.lightAccent};
+  border: 0.5rem solid ${({ theme }) => theme.darkAccent};
+  border-top: 0.5rem solid ${({ theme }) => theme.primaryButton};
   border-radius: 50%;
   width: 2rem;
   height: 2rem;

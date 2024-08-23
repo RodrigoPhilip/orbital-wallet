@@ -5,13 +5,13 @@ interface Storage {
   clear: () => Promise<void>;
 }
 
-const mockStorage: Storage = {
+const mockStorage = (store: globalThis.Storage): Storage => ({
   set: (obj, callback) => {
     Object.keys(obj).forEach((key) => {
       if (typeof obj[key] === 'object') {
-        localStorage.setItem(key, JSON.stringify(obj[key]));
+        store.setItem(key, JSON.stringify(obj[key]));
       } else {
-        localStorage.setItem(key, obj[key]);
+        store.setItem(key, obj[key]);
       }
     });
     if (callback) callback();
@@ -21,7 +21,7 @@ const mockStorage: Storage = {
     const result: { [key: string]: string | null } = {};
 
     if (typeof keyOrKeys === 'string') {
-      const value = localStorage.getItem(keyOrKeys);
+      const value = store.getItem(keyOrKeys);
       if (typeof value === 'string') {
         if ((value.startsWith('"') && value.startsWith('"')) || (value.startsWith('{') && value.startsWith('}'))) {
           result[keyOrKeys] = JSON.parse(value);
@@ -35,7 +35,7 @@ const mockStorage: Storage = {
       callback(result);
     } else if (Array.isArray(keyOrKeys)) {
       keyOrKeys.forEach((key) => {
-        const value = localStorage.getItem(key);
+        const value = store.getItem(key);
         if (typeof value === 'string') {
           if ((value.startsWith('[') && value.endsWith(']')) || (value.startsWith('{') && value.endsWith('}'))) {
             result[key] = JSON.parse(value);
@@ -51,10 +51,10 @@ const mockStorage: Storage = {
   },
   remove: (keyOrKeys, callback) => {
     if (typeof keyOrKeys === 'string') {
-      localStorage.removeItem(keyOrKeys);
+      store.removeItem(keyOrKeys);
     } else if (Array.isArray(keyOrKeys)) {
       keyOrKeys.forEach((key) => {
-        localStorage.removeItem(key);
+        store.removeItem(key);
       });
     }
     if (callback) callback();
@@ -62,14 +62,15 @@ const mockStorage: Storage = {
   clear: async () => {
     // Made the clear method asynchronous
     await new Promise<void>((resolve) => {
-      localStorage.clear();
+      store.clear();
       resolve();
     });
   },
-};
+});
 
 // Checking if we're in a Chrome environment
 const isChromeEnv = typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined';
 
 // Use chrome.storage.local if in Chrome environment, otherwise use mockStorage
-export const storage: Storage = isChromeEnv ? chrome.storage.local : mockStorage;
+export const storage: Storage = isChromeEnv ? chrome.storage.local : mockStorage(localStorage);
+export const session = isChromeEnv ? chrome.storage.session : mockStorage(sessionStorage);

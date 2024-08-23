@@ -4,16 +4,15 @@ import styled from 'styled-components';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PageLoader } from '../../components/PageLoader';
-import { HeaderText, Text, YoursLogo } from '../../components/Reusable';
+import { HeaderText, Text, OrbitalLogo } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { useKeys } from '../../hooks/useKeys';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { ColorThemeProps } from '../../theme';
 import { sleep } from '../../utils/sleep';
-import copyIcon from '../../assets/copy-green.svg';
-import yoursLogo from '../../assets/yours-logo.png';
+import { TbCopy as CopyIcon } from 'react-icons/tb';
+import { generateSeedAndStoreEncrypted } from '../../utils/crypto';
 
 const Content = styled.div`
   display: flex;
@@ -52,11 +51,6 @@ const CopyToClipboardContainer = styled.div<ColorThemeProps>`
   background: none;
 `;
 
-const CopyIcon = styled.img`
-  width: 0.85rem;
-  height: 0.85rem;
-`;
-
 export const CreateWallet = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -66,7 +60,6 @@ export const CreateWallet = () => {
   const [seedWords, setSeedWords] = useState<string[]>([]);
 
   const { addSnackbar } = useSnackbar();
-  const { generateSeedAndStoreEncrypted } = useKeys();
   const { hideMenu, showMenu } = useBottomMenu();
   const [loading, setLoading] = useState(false);
 
@@ -95,7 +88,7 @@ export const CreateWallet = () => {
 
     // Some artificial delay for the loader
     await sleep(50);
-    const mnemonic = generateSeedAndStoreEncrypted(password);
+    const mnemonic = await generateSeedAndStoreEncrypted(password);
     setSeedWords(mnemonic.split(' '));
 
     setLoading(false);
@@ -152,11 +145,10 @@ export const CreateWallet = () => {
             {seedWords.join(' ').trim()}
           </Text>
           <CopyToClipboardContainer onClick={() => handleCopyToClipboard(seedWords.join(' ').trim())}>
-            <CopyIcon src={copyIcon} />
+            <CopyIcon color="white" />
             <Text
               style={{
-                color: theme.primaryButton,
-                textDecoration: 'underline',
+                color: theme.white,
                 margin: '0 0 0 0.5rem',
                 textAlign: 'left',
                 fontSize: '0.75rem',
@@ -183,7 +175,7 @@ export const CreateWallet = () => {
   const successStep = (
     <>
       <Content>
-        <YoursLogo src={yoursLogo} />
+        <OrbitalLogo />
         <HeaderText theme={theme}>Success!</HeaderText>
         <Text theme={theme} style={{ marginBottom: '1rem' }}>
           Your wallet is ready to go.

@@ -14,16 +14,19 @@ import { SpeedBump } from '../components/SpeedBump';
 import { ToggleSwitch } from '../components/ToggleSwitch';
 import { TopNav } from '../components/TopNav';
 import { useBottomMenu } from '../hooks/useBottomMenu';
-import { useKeys } from '../hooks/useKeys';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { useSocialProfile } from '../hooks/useSocialProfile';
 import { useTheme } from '../hooks/useTheme';
-import { useWalletLockState } from '../hooks/useWalletLockState';
 import { useWeb3Context } from '../hooks/useWeb3Context';
 import { ColorThemeProps } from '../theme';
 import { SNACKBAR_TIMEOUT } from '../utils/constants';
 import { NetWork } from '../utils/network';
-import { storage } from '../utils/storage';
+import { session, storage } from '../utils/storage';
+import { network } from '../signals';
+import { useSignals } from '@preact/signals-react/runtime';
+import { retrieveKeys } from '../utils/crypto';
+import { lock } from '../utils/keyring';
+import { db } from '../db';
 
 const Content = styled.div`
   display: flex;
@@ -109,24 +112,17 @@ type SettingsPage =
 type DecisionType = 'sign-out' | 'export-keys' | 'export-keys-qr-code';
 
 export const Settings = () => {
+  useSignals();
   const { theme } = useTheme();
   const { setSelected } = useBottomMenu();
-  const { lockWallet } = useWalletLockState();
   const [showSpeedBump, setShowSpeedBump] = useState(false);
   const { addSnackbar } = useSnackbar();
-  const {
-    network,
-    updateNetwork,
-    isPasswordRequired,
-    updatePasswordRequirement,
-    updateNoApprovalLimit,
-    noApprovalLimit,
-  } = useWeb3Context();
+  const { updateNetwork, isPasswordRequired, updatePasswordRequirement, updateNoApprovalLimit, noApprovalLimit } =
+    useWeb3Context();
   const [page, setPage] = useState<SettingsPage>('main');
   const [connectedApps, setConnectedApps] = useState<WhitelistedApp[]>([]);
   const [speedBumpMessage, setSpeedBumpMessage] = useState('');
   const [decisionType, setDecisionType] = useState<DecisionType | undefined>();
-  const { retrieveKeys } = useKeys();
   const { socialProfile, storeSocialProfile } = useSocialProfile();
   const [exportKeysQrData, setExportKeysAsQrData] = useState('');
   const [shouldVisibleExportedKeys, setShouldVisibleExportedKeys] = useState(false);
@@ -201,8 +197,6 @@ export const Settings = () => {
       mnemonic: keys.mnemonic,
       payPk: keys.walletWif,
       payDerivationPath: keys.walletDerivationPath,
-      ordPk: keys.ordWif,
-      ordDerivationPath: keys.ordDerivationPath,
       identityPk: keys.identityWif,
       identityDerivationPath: keys.identityDerivationPath,
     };
@@ -212,7 +206,7 @@ export const Settings = () => {
     const url = URL.createObjectURL(blob);
     const tempLink = document.createElement('a');
     tempLink.href = url;
-    tempLink.setAttribute('download', 'panda_wallet_keys.json');
+    tempLink.setAttribute('download', 'orbital_wallet_keys.json');
     document.body.appendChild(tempLink);
     tempLink.click();
     document.body.removeChild(tempLink);
@@ -226,8 +220,6 @@ export const Settings = () => {
       mnemonic: keys.mnemonic,
       payPk: keys.walletWif,
       payDerivationPath: keys.walletDerivationPath,
-      ordPk: keys.ordWif,
-      ordDerivationPath: keys.ordDerivationPath,
     };
 
     const jsonData = JSON.stringify(keysToExport, null, 2);
@@ -241,7 +233,9 @@ export const Settings = () => {
   };
 
   const signOut = async () => {
+    await db.delete();
     await storage.clear();
+    await session.clear();
     setDecisionType(undefined);
     window.location.reload();
 
@@ -264,11 +258,8 @@ export const Settings = () => {
 
     // The provider relies on appState in local storage to accurately return addresses. This is an easy way to handle making sure the state is always up to date.
     addSnackbar(`Switching to ${network}`, 'info');
-    setTimeout(() => {
-      window.location.reload();
-    }, SNACKBAR_TIMEOUT - 500);
 
-    chrome.runtime.sendMessage({
+    chrome.runtime?.sendMessage({
       action: 'networkChanged',
       params: {
         network,
@@ -307,11 +298,15 @@ export const Settings = () => {
         onClick={() => setPage('preferences')}
         jsxElement={<ForwardButton />}
       />
+      {/*
       <SettingsRow
         name="Testnet Mode"
         description="Applies to balances and app connections"
-        jsxElement={<ToggleSwitch theme={theme} on={network === NetWork.Testnet} onChange={handleNetworkChange} />}
+        jsxElement={
+          <ToggleSwitch theme={theme} on={network.value === NetWork.Testnet} onChange={handleNetworkChange} />
+        }
       />
+      */}
       <SettingsRow
         name="Export Keys"
         description="Download keys or export as QR code"
@@ -319,8 +314,8 @@ export const Settings = () => {
         jsxElement={<ForwardButton />}
       />
 
-      <SettingsRow name="Lock Wallet" description="Immediately lock the wallet" onClick={lockWallet} />
-      <SettingsRow name="Sign Out" description="Sign out of Panda Wallet completely" onClick={handleSignOutIntent} />
+      <SettingsRow name="Lock Wallet" description="Immediately lock the wallet" onClick={() => lock()} />
+      <SettingsRow name="Sign Out" description="Sign out of Orbital Wallet completely" onClick={handleSignOutIntent} />
     </>
   );
 
@@ -393,7 +388,7 @@ export const Settings = () => {
       />
       <SettingsRow
         name="Auto Approve Limit"
-        description="Transactions at or below this BSV amount will be auto approved."
+        description="Transactions at or below this RXD amount will be auto approved."
         jsxElement={
           <Input
             theme={theme}

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { styled } from 'styled-components';
-import { useKeys } from '../hooks/useKeys';
 import { useTheme } from '../hooks/useTheme';
 import { useViewport } from '../hooks/useViewport';
 import { ColorThemeProps } from '../theme';
@@ -8,8 +7,8 @@ import { sleep } from '../utils/sleep';
 import { storage } from '../utils/storage';
 import { Button } from './Button';
 import { Input } from './Input';
-import yoursLogo from '../assets/yours-logo.png';
-import { FormContainer, HeaderText, Text, YoursLogo } from './Reusable';
+import { FormContainer, HeaderText, Text, OrbitalLogo } from './Reusable';
+import { unlock } from '../utils/keyring';
 
 const Container = styled.div<ColorThemeProps & { $isMobile: boolean }>`
   display: flex;
@@ -37,13 +36,11 @@ export const UnlockWallet = (props: UnlockWalletProps) => {
   const [verificationFailed, setVerificationFailed] = useState(false);
   const { isMobile } = useViewport();
 
-  const { verifyPassword } = useKeys();
-
   const handleUnlock = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsProcessing(true);
     await sleep(25);
-    const isVerified = await verifyPassword(password);
+    const isVerified = await unlock(password);
     if (isVerified) {
       setVerificationFailed(false);
       const timestamp = Date.now();
@@ -61,7 +58,7 @@ export const UnlockWallet = (props: UnlockWalletProps) => {
 
   return (
     <Container $isMobile={isMobile} theme={theme}>
-      <YoursLogo src={yoursLogo} />
+      <OrbitalLogo />
       <HeaderText style={{ fontSize: '1.75rem' }} theme={theme}>
         Unlock Wallet
       </HeaderText>

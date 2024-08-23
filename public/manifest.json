@@ -1,12 +1,12 @@
 {
-  "version": "3.2.0",
+  "version": "0.1.0",
   "manifest_version": 3,
-  "name": "Yours Wallet",
-  "description": "A non-custodial and open-source wallet for BSV and 1Sat Ordinals",
+  "name": "Orbital Wallet",
+  "description": "A non-custodial and open-source wallet for Radiant",
   "permissions": ["storage", "unlimitedStorage"],
   "action": {
     "default_popup": "index.html",
-    "default_title": "Yours Wallet"
+    "default_title": "Orbital Wallet"
   },
   "background": {
     "service_worker": "background.js",

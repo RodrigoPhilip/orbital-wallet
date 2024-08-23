@@ -37,7 +37,7 @@ const Input = styled.input<ColorThemeProps>`
   position: absolute;
 
   &:checked + ${Switch} {
-    background: ${({ theme }) => theme.primaryButton + '95'};
+    background: ${({ theme }) => theme.primaryButton};
 
     &:before {
       transform: translate(1.25rem, -50%);

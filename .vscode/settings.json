@@ -1,5 +1,6 @@
 {
   "editor.codeActionsOnSave": {
     "source.organizeImports": "never"
-  }
+  },
+  "prettier.prettierPath": "./node_modules/prettier/index.cjs"
 }

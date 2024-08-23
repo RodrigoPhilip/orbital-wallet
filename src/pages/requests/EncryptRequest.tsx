@@ -1,4 +1,4 @@
-import { PublicKey } from 'bsv-wasm-web';
+import { PublicKey } from 'rxd-wasm';
 import { useEffect, useState } from 'react';
 import { BackButton } from '../../components/BackButton';
 import { Button } from '../../components/Button';
@@ -7,12 +7,11 @@ import { PageLoader } from '../../components/PageLoader';
 import { ConfirmContent, FormContainer, HeaderText, Text } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { useBsv, Web3EncryptRequest } from '../../hooks/useBsv';
-import { useKeys } from '../../hooks/useKeys';
+import { useRxd, Web3EncryptRequest } from '../../hooks/useRxd';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { useWeb3Context } from '../../hooks/useWeb3Context';
-import { encryptUsingPrivKey } from '../../utils/crypto';
+import { encryptUsingPrivKey, retrieveKeys } from '../../utils/crypto';
 import { getPrivateKeyFromTag, Keys } from '../../utils/keys';
 import { sleep } from '../../utils/sleep';
 import { storage } from '../../utils/storage';
@@ -36,19 +35,17 @@ export const EncryptRequest = (props: EncryptRequestProps) => {
   const [encryptedMessages, setEncryptedMessages] = useState<string[] | undefined>(undefined);
   const { addSnackbar, message } = useSnackbar();
   const { isPasswordRequired } = useWeb3Context();
-  const { retrieveKeys } = useKeys();
   const [hasEncrypted, setHasEncrypted] = useState(false);
-
-  const { isProcessing, setIsProcessing } = useBsv();
+  const { isProcessing, setIsProcessing } = useRxd();
 
   useEffect(() => {
-    if (hasEncrypted || isPasswordRequired || !messageToEncrypt || !retrieveKeys) return;
+    if (hasEncrypted || isPasswordRequired || !messageToEncrypt) return;
     handleEncryption();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasEncrypted, isPasswordRequired, messageToEncrypt, retrieveKeys]);
+  }, [hasEncrypted, isPasswordRequired, messageToEncrypt]);
 
   useEffect(() => {
-    setSelected('bsv');
+    setSelected('rxd');
   }, [setSelected]);
 
   useEffect(() => {
@@ -88,7 +85,7 @@ export const EncryptRequest = (props: EncryptRequestProps) => {
 
     const keys = (await retrieveKeys(passwordConfirm)) as Keys;
 
-    const PrivKey = getPrivateKeyFromTag(messageToEncrypt.tag ?? { label: 'panda', id: 'identity', domain: '' }, keys);
+    const PrivKey = getPrivateKeyFromTag(messageToEncrypt.tag ?? { label: 'orbital', id: 'identity', domain: '' }, keys);
 
     const encrypted = encryptUsingPrivKey(
       messageToEncrypt.message,

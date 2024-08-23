@@ -1,36 +1,95 @@
+import { Buffer } from "buffer";
+import { sha256 } from "@noble/hashes/sha256";
+
 export class Outpoint {
-  txid: Buffer = Buffer.alloc(32);
-  vout: number = 0;
+  txid: Buffer;
+  vout: Buffer;
 
-  constructor(txid?: Buffer, vout?: number) {
-    if (txid) this.txid = txid;
-    if (vout) this.vout = vout;
-  }
-
-  toString() {
-    return this.txid.toString('hex') + '_' + this.vout;
-  }
-
-  toBuffer() {
-    return Buffer.concat([this.txid, Buffer.from(this.vout.toString(16).padStart(8, '0'), 'hex')]);
+  constructor(txid: Buffer, vout: Buffer) {
+    this.txid = txid;
+    this.vout = vout;
   }
 
   static fromString(str: string) {
-    const origin = new Outpoint();
-    if (!str.match(/^[0-9a-fA-F]{64}_\d*$/)) throw new Error('invalid outpoint');
-    origin.txid = Buffer.from(str.slice(0, 64), 'hex');
-    origin.vout = parseInt(str.slice(65), 10);
-    return origin;
+    const txid = str.substring(0, 64);
+    const vout = str.substring(64);
+
+    return new Outpoint(Buffer.from(txid, "hex"), Buffer.from(vout, "hex"));
   }
 
-  static fromBuffer(buf: Buffer) {
-    const origin = new Outpoint();
-    origin.txid = buf.slice(0, 32);
-    origin.vout = parseInt(buf.slice(32).toString('hex'), 16);
-    return origin;
+  static fromUTXO(txid: string, vout: number) {
+    const voutBuf = Buffer.alloc(4);
+    voutBuf.writeUInt32BE(vout);
+    return new Outpoint(Buffer.from(txid, "hex"), voutBuf);
   }
 
-  toJSON() {
-    return this.toString();
+  static fromObject({ txid, vout }: { txid: string; vout: number }) {
+    return Outpoint.fromUTXO(txid, vout);
   }
+
+  reverse() {
+    return new Outpoint(
+      Buffer.from(this.txid).reverse(),
+      Buffer.from(this.vout).reverse()
+    );
+  }
+
+  ref(type?: string) {
+    const vout = type
+      ? `${type}${this.vout.readUInt32BE()}`
+      : `${this.vout.toString("hex").padStart(8, "0")}`;
+    return `${this.txid.toString("hex")}${vout}`;
+  }
+
+  toString() {
+    return this.ref();
+  }
+
+  short(type: string) {
+    const str = this.txid.toString("hex");
+
+    return `${str.substring(0, 4)}…${str.substring(
+      60,
+      64
+    )}${type}${this.vout.readUInt32BE()}`;
+  }
+
+  shortRef() {
+    return this.short("s");
+  }
+
+  shortInput() {
+    return this.short("i");
+  }
+
+  shortOutput() {
+    return this.short("o");
+  }
+
+  refHash() {
+    return Buffer.from(sha256(Buffer.from(this.ref(), "hex"))).toString("hex");
+  }
+
+  getTxid() {
+    return this.txid.toString("hex");
+  }
+
+  getVout() {
+    return this.vout.readUInt32BE();
+  }
+
+  toObject() {
+    return {
+      txid: this.getTxid(),
+      vout: this.getVout(),
+    };
+  }
+}
+
+export function reverseOutpoint(outpoint: string) {
+  return Outpoint.fromString(outpoint).reverse().toString();
+}
+
+export function iOutpoint(outpoint: string) {
+  return `${outpoint.substring(0, 64)}i${parseInt(outpoint.substring(64), 10)}`;
 }

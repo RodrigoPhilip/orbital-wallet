@@ -1,9 +1,9 @@
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext, useEffect, useState } from 'react';
 import { BottomMenu } from '../components/BottomMenu';
 import { useTheme } from '../hooks/useTheme';
-import { useWeb3Context } from '../hooks/useWeb3Context';
+import { useNavigate } from 'react-router-dom';
 
-export type MenuItems = 'bsv' | 'ords' | 'apps' | 'settings';
+export type MenuItems = 'rxd' | 'tokens' | 'apps' | 'settings';
 
 type BottomMenuContextType = {
   selected: MenuItems | null;
@@ -27,7 +27,20 @@ export const BottomMenuProvider = (props: BottomMenuProviderProps) => {
   const [selected, setSelected] = useState<MenuItems | null>(null);
   const [query, setQuery] = useState('');
   const [isVisible, setIsVisible] = useState(false);
-  const { network } = useWeb3Context();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!navigate) return;
+    return selected === 'rxd'
+      ? navigate('/rxd-wallet')
+      : selected === 'tokens'
+        ? navigate('/token-wallet')
+        : selected === 'settings'
+          ? navigate('/settings')
+          : selected === 'apps'
+            ? navigate('/apps')
+            : undefined;
+  }, [selected, navigate]);
 
   const handleSelect = (item: MenuItems, pageQuery?: string) => {
     setSelected(item);
@@ -54,7 +67,7 @@ export const BottomMenuProvider = (props: BottomMenuProviderProps) => {
         query,
       }}
     >
-      {isVisible && <BottomMenu theme={theme} network={network} handleSelect={handleSelect} selected={selected} />}
+      {isVisible && <BottomMenu theme={theme} handleSelect={handleSelect} selected={selected} />}
       {children}
     </BottomMenuContext.Provider>
   );

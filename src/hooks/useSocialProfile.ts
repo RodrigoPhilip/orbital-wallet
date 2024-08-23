@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { HOSTED_PANDA_IMAGE } from '../utils/constants';
 import { storage } from '../utils/storage';
 
 export type SocialProfile = {
@@ -9,8 +8,8 @@ export type SocialProfile = {
 
 export const useSocialProfile = () => {
   const [socialProfile, setSocialProfile] = useState<SocialProfile>({
-    displayName: 'Anon Panda',
-    avatar: HOSTED_PANDA_IMAGE,
+    displayName: 'Anon Orbital',
+    avatar: "",
   });
 
   useEffect(() => {

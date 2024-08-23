@@ -1,4 +1,4 @@
-import init, { P2PKHAddress, Transaction } from 'bsv-wasm-web';
+import { P2PKHAddress, Transaction } from 'rxd-wasm';
 import React, { useEffect, useState } from 'react';
 import { BackButton } from '../../components/BackButton';
 import { Button } from '../../components/Button';
@@ -7,13 +7,13 @@ import { PageLoader } from '../../components/PageLoader';
 import { ConfirmContent, FormContainer, HeaderText, Text } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { useBsv, Web3BroadcastRequest } from '../../hooks/useBsv';
-import { useGorillaPool } from '../../hooks/useGorillaPool';
+import { useRxd, Web3BroadcastRequest } from '../../hooks/useRxd';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
-import { BSV_DECIMAL_CONVERSION } from '../../utils/constants';
+import { RXD_DECIMAL_CONVERSION } from '../../utils/constants';
 import { sleep } from '../../utils/sleep';
 import { storage } from '../../utils/storage';
+import { rxdAddress } from '../../signals';
 
 export type BroadcastResponse = {
   txid: string;
@@ -33,11 +33,10 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
   const { addSnackbar, message } = useSnackbar();
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [satsOut, setSatsOut] = useState(0);
-  const { broadcastWithGorillaPool } = useGorillaPool();
-  const { isProcessing, setIsProcessing, updateBsvBalance, fundRawTx, bsvAddress } = useBsv();
+  const { isProcessing, setIsProcessing, updateRxdBalance, fundRawTx } = useRxd();
 
   useEffect(() => {
-    setSelected('bsv');
+    setSelected('rxd');
   }, [setSelected]);
 
   useEffect(() => {
@@ -61,12 +60,11 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
   }, [popupId]);
 
   useEffect(() => {
-    if (!bsvAddress) return;
+    if (!rxdAddress.value) return;
     (async () => {
-      await init();
       const tx = Transaction.from_hex(request.rawtx);
       let satsOut = 0;
-      const changeScript = P2PKHAddress.from_string(bsvAddress).get_locking_script().to_hex();
+      const changeScript = P2PKHAddress.from_string(rxdAddress.value).get_locking_script().to_hex();
       for (let index = 0; index < tx.get_noutputs(); index++) {
         if (tx.get_output(index)?.get_script_pub_key_hex() !== changeScript) {
           satsOut += Number(tx.get_output(index)!.get_satoshis());
@@ -74,7 +72,7 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
       }
       setSatsOut(satsOut);
     })();
-  }, [bsvAddress, request.fund, request.rawtx]);
+  }, [request.fund, request.rawtx]);
 
   const resetSendState = () => {
     setTxid('');
@@ -107,7 +105,10 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
       }
       rawtx = res.rawtx;
     }
-    const { txid, message } = await broadcastWithGorillaPool(rawtx);
+    //const { txid, message } = await broadcastWithGorillaPool(rawtx);
+    // FIXME
+    const txid = '';
+    const message = '';
     if (!txid) {
       addSnackbar('Error broadcasting the raw tx!', 'error');
       setIsProcessing(false);
@@ -134,7 +135,7 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
 
     storage.remove('broadcastRequest');
     setTimeout(async () => {
-      await updateBsvBalance(true).catch(() => {});
+      await updateRxdBalance(true).catch(() => {});
       onBroadcast();
       if (popupId) chrome.windows.remove(popupId);
     }, 2000);
@@ -174,7 +175,7 @@ export const BroadcastRequest = (props: BroadcastRequestProps) => {
             <Button
               theme={theme}
               type="primary"
-              label={`Broadcast - ${satsOut / BSV_DECIMAL_CONVERSION} BSV`}
+              label={`Broadcast - ${satsOut / RXD_DECIMAL_CONVERSION} RXD`}
               disabled={isProcessing}
               isSubmit
             />

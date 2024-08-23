@@ -1,4 +1,4 @@
-import init, { P2PKHAddress, Transaction } from 'bsv-wasm-web';
+import { P2PKHAddress, Transaction } from 'rxd-wasm';
 import React, { useEffect, useState } from 'react';
 import { DefaultTheme, styled } from 'styled-components';
 import { BackButton } from '../../components/BackButton';
@@ -111,7 +111,6 @@ const TxViewer = (props: { request: Web3GetSignaturesRequest }) => {
 
   useEffect(() => {
     const setTheTx = async () => {
-      await init();
       const tx = Transaction.from_hex(request.rawtx);
       const numOuts = tx.get_noutputs();
       const outputs: { asm: string; satoshis: number }[] = [];
@@ -215,7 +214,7 @@ export const GetSignaturesRequest = (props: GetSignaturesRequestProps) => {
   const { isProcessing, setIsProcessing, getSignatures } = useContracts();
 
   useEffect(() => {
-    setSelected('bsv');
+    setSelected('rxd');
   }, [setSelected]);
 
   useEffect(() => {

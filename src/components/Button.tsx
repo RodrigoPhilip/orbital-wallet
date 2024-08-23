@@ -1,19 +1,23 @@
 import styled from 'styled-components';
 import { ColorThemeProps, Theme } from '../theme';
 import { Show } from './Show';
+import gradient from '../assets/gradient.svg';
 
 export type ButtonStyles = 'primary' | 'secondary' | 'secondary-outline' | 'warn';
 
 const Primary = styled.button<ColorThemeProps>`
   width: 87%;
   height: 2.25rem;
-  background: linear-gradient(45deg, ${({ theme }) => theme.lightAccent}, ${({ theme }) => theme.primaryButton});
-  color: ${({ theme }) => theme.mainBackground};
+  background-image: url(${gradient});
+  background-size: cover;
+  background-color: unset;
+  background-position: bottom;
+  color: ${({ theme }) => theme.white};
   border: none;
   border-radius: 1.25rem;
   font-family: 'Inter', Arial, Helvetica, sans-serif;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;

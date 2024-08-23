@@ -1,5 +1,5 @@
+const path = require('path');
 const webpack = require('webpack');
-const WebpackPluginReplaceNpm = require('replace-module-webpack-plugin');
 
 module.exports = function override(config, env) {
   // Ensure crypto-browserify is used as a fallback for the crypto module
@@ -15,22 +15,13 @@ module.exports = function override(config, env) {
     fs: false,
     os: false,
   };
+  config.resolve.alias = {
+    'rxd-wasm': path.resolve(__dirname, 'src/rxd-wasm')
+  };
 
   // Define plugins
   config.plugins = [
     ...config.plugins,
-    new WebpackPluginReplaceNpm({
-      rules: [
-        {
-          originModule: 'path',
-          replaceModule: 'path-browserify',
-        },
-        {
-          originModule: 'bsv-wasm',
-          replaceModule: 'bsv-wasm-web',
-        },
-      ],
-    }),
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],

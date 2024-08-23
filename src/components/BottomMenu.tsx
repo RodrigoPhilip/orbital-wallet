@@ -1,13 +1,17 @@
 import { styled } from 'styled-components';
 import { ColorThemeProps, Theme } from '../theme';
-import home from '../assets/home.svg';
-import info from '../assets/info.svg';
-import tokens from '../assets/grid.svg';
-import settings from '../assets/settings.svg';
 import { MenuItems } from '../contexts/BottomMenuContext';
 import { Badge, Text } from './Reusable';
 import { NetWork } from '../utils/network';
 import { Show } from './Show';
+import {
+  TbStar as ResourcesIcon,
+  TbHome as HomeIcon,
+  TbSettings as SettingsIcon,
+  TbCircles as TokensIcon,
+} from 'react-icons/tb';
+import { network } from '../signals';
+import { useSignals } from '@preact/signals-react/runtime';
 
 const Container = styled.div<ColorThemeProps>`
   display: flex;
@@ -34,7 +38,7 @@ const MenuContainer = styled.div<ColorThemeProps>`
   position: relative;
 `;
 
-const Icon = styled.img<{ $opacity: number }>`
+const Icon = styled.div<{ $opacity: number }>`
   width: 1.5rem;
   height: 1.5rem;
   opacity: ${(props) => props.$opacity};
@@ -59,12 +63,11 @@ export type BottomMenuProps = {
   selected: MenuItems | null;
   handleSelect: (item: MenuItems) => void;
   theme: Theme;
-  network: NetWork;
 };
 
 export type MenuProps = {
   badge?: string;
-  src: string;
+  icon: React.ComponentType;
   label: string;
   onClick: (e: React.MouseEvent<HTMLImageElement>) => void;
   opacity: number;
@@ -72,12 +75,12 @@ export type MenuProps = {
 };
 
 const Menu = (props: MenuProps) => {
-  const { theme, label, onClick, opacity, src, badge } = props;
+  const { theme, label, onClick, opacity, icon, badge } = props;
   return (
     <MenuContainer>
       <ContentWrapper>
-        <Icon src={src} onClick={onClick} $opacity={opacity} />
-        <StyledText style={{ margin: 0, fontSize: '0.65rem' }} theme={theme} $opacity={opacity}>
+        <Icon as={icon} onClick={onClick} $opacity={opacity} color="white" />
+        <StyledText onClick={onClick} style={{ margin: 0, fontSize: '0.65rem' }} theme={theme} $opacity={opacity}>
           {label}
         </StyledText>
         <Show when={!!badge}>
@@ -89,6 +92,7 @@ const Menu = (props: MenuProps) => {
 };
 
 export const BottomMenu = (props: BottomMenuProps) => {
+  useSignals();
   const { selected, handleSelect, theme } = props;
 
   return (
@@ -96,31 +100,31 @@ export const BottomMenu = (props: BottomMenuProps) => {
       <Menu
         label="Home"
         theme={theme}
-        src={home}
-        onClick={() => handleSelect('bsv')}
-        opacity={selected === 'bsv' ? 1 : 0.4}
+        icon={HomeIcon}
+        onClick={() => handleSelect('rxd')}
+        opacity={selected === 'rxd' ? 1 : 0.6}
       />
       <Menu
         label="Tokens"
         theme={theme}
-        src={tokens}
-        onClick={() => handleSelect('ords')}
-        opacity={selected === 'ords' ? 1 : 0.4}
+        icon={TokensIcon}
+        onClick={() => handleSelect('tokens')}
+        opacity={selected === 'tokens' ? 1 : 0.6}
       />
       <Menu
-        label="Resources"
+        label="Apps"
         theme={theme}
-        src={info}
+        icon={ResourcesIcon}
         onClick={() => handleSelect('apps')}
-        opacity={selected === 'apps' ? 1 : 0.4}
+        opacity={selected === 'apps' ? 1 : 0.6}
       />
       <Menu
         label="Settings"
         theme={theme}
-        src={settings}
+        icon={SettingsIcon}
         onClick={() => handleSelect('settings')}
         opacity={selected === 'settings' ? 1 : 0.4}
-        badge={props.network === NetWork.Testnet ? 'testnet' : undefined}
+        badge={network.value === NetWork.Testnet ? 'testnet' : undefined}
       />
     </Container>
   );

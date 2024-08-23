@@ -2,9 +2,11 @@ import styled, { keyframes } from 'styled-components';
 import { Text } from './Reusable';
 import { SnackbarType } from '../contexts/SnackbarContext';
 import { ColorThemeProps, Theme } from '../theme';
-import errorIcon from '../assets/error.svg';
-import infoIcon from '../assets/info-dark.svg';
-import successIcon from '../assets/success.svg';
+import {
+  TbInfoCircle as InfoIcon,
+  TbCircleCheck as SuccessIcon,
+  TbExclamationCircle as ErrorIcon,
+} from 'react-icons/tb';
 
 type SnackBarColorTheme = ColorThemeProps & { color: string };
 
@@ -47,9 +49,10 @@ export const SnackBarContainer = styled.div<SnackBarColorTheme>`
   animation-fill-mode: forwards;
 `;
 
-const Image = styled.img`
-  width: 1rem;
-  height: 1rem;
+const Image = styled.div`
+  color: white;
+  width: 1.5rem;
+  height: 1.5rem;
   margin: 1rem;
 `;
 
@@ -64,13 +67,13 @@ export type SnackbarProps = {
 export const Snackbar = (props: SnackbarProps) => {
   const { message, type, theme } = props;
   return (
-    <SnackBarContainer color={type === 'error' ? theme.errorRed : type === 'info' ? theme.white : theme.lightAccent}>
-      <Image src={type === 'error' ? errorIcon : type === 'info' ? infoIcon : successIcon} />
+    <SnackBarContainer color={type === 'error' ? theme.errorRed : theme.darkAccent}>
+      <Image as={type === 'error' ? ErrorIcon : type === 'info' ? InfoIcon : SuccessIcon} />
       <Text
         theme={theme}
         style={{
           margin: '1rem 0 1rem .25rem',
-          color: type === 'error' ? theme.white : theme.darkAccent,
+          color: theme.white,
           wordWrap: 'break-word',
           textAlign: 'left',
         }}

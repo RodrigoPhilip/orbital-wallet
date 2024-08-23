@@ -25,7 +25,4 @@ yarn-error.log*
 # cache
 .cache
 
-#custom script
-.panda-build.sh
-.panda-release.sh
-.vercel
+public/background.js

@@ -1,17 +1,14 @@
 import { styled } from 'styled-components';
-import logo from '../assets/yours-horizontal-logo.png';
+import { LuOrbit, LuRefreshCw } from 'react-icons/lu';
 import { useTheme } from '../hooks/useTheme';
-import { GithubIcon, Text } from './Reusable';
-import activeCircle from '../assets/active-circle.png';
-import { useKeys } from '../hooks/useKeys';
+import { Text } from './Reusable';
 import { truncate } from '../utils/format';
-import gitHubIcon from '../assets/github.svg';
 import { useSnackbar } from '../hooks/useSnackbar';
+import { rxdAddress } from '../signals';
+import { useRxd } from '../hooks/useRxd';
+import { useRadiantTokens } from '../hooks/useRadiantTokens';
 
 const Container = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   position: fixed;
   width: 100%;
   top: 0;
@@ -22,24 +19,62 @@ const LogoWrapper = styled.div`
   align-items: center;
 `;
 
-const Logo = styled.img`
-  width: 6.5rem;
-  margin: 1rem;
+const Logo = styled(LuOrbit)`
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 1rem 0 1rem 1rem;
+  color: #64ffda;
+  filter: drop-shadow(0 0 15px #00bfa5);
 `;
 
-const Circle = styled.img`
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-left: 0.5rem;
+const LogoText = styled.div`
+  font-family:
+    Days One,
+    sans-serif;
+  font-size: 1.1rem;
+  color: white;
+  margin-left: 0.3rem;
+  margin-right: 0.5rem;
+`;
+
+const Address = styled(Text)`
+  color: ${({ theme }) => theme.white};
+  background-color: ${({ theme }) => theme.darkAccent};
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  cursor: pointer;
+  width: auto;
+`;
+
+const Refresh = styled(LuRefreshCw)`
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+  margin-right: 1rem;
+  cursor: pointer;
+`;
+
+const Spacer = styled.div`
+  flex-grow: 1;
 `;
 
 export const TopNav = () => {
   const { theme } = useTheme();
-  const { bsvAddress } = useKeys();
   const { addSnackbar } = useSnackbar();
+  const { updateRxdBalance } = useRxd();
+  const { syncTokens } = useRadiantTokens();
+
+  const refresh = () => {
+    updateRxdBalance();
+    syncTokens();
+    addSnackbar('Refreshing RXD and token balances', 'info');
+  };
 
   const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(bsvAddress).then(() => {
+    navigator.clipboard.writeText(rxdAddress.value).then(() => {
       addSnackbar('Copied!', 'success');
     });
   };
@@ -47,24 +82,14 @@ export const TopNav = () => {
   return (
     <Container>
       <LogoWrapper>
-        <Logo src={logo} />
-        <Text style={{ margin: '0', marginLeft: '-0.25rem' }} theme={theme}>
-          /
-        </Text>
-        <Circle src={activeCircle} />
-        <Text
-          style={{ margin: '0 0 0 0.25rem', color: theme.white, fontSize: '0.75rem' }}
-          theme={theme}
-          onClick={handleCopyToClipboard}
-        >
-          {truncate(bsvAddress, 5, 5)}
-        </Text>
+        <Logo />
+        <LogoText>Orbital</LogoText>
+        <Address theme={theme} onClick={handleCopyToClipboard}>
+          {truncate(rxdAddress.value, 5, 5)}
+        </Address>
+        <Spacer />
+        <Refresh onClick={refresh} />
       </LogoWrapper>
-      <GithubIcon
-        style={{ marginRight: '1.5rem' }}
-        src={gitHubIcon}
-        onClick={() => window.open('https://github.com/yours-org', '_blank')}
-      />
     </Container>
   );
 };

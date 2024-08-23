@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import gihubIcon from '../../assets/github.svg';
 import { Button } from '../../components/Button';
-import { GithubIcon, Text, YoursLogo } from '../../components/Reusable';
+import { GithubIcon, Text, OrbitalLogo } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
 import { useTheme } from '../../hooks/useTheme';
 import { ColorThemeProps } from '../../theme';
 import { storage } from '../../utils/storage';
-import yoursLogo from '../../assets/yours-logo.png';
 
 const Content = styled.div`
   display: flex;
@@ -52,7 +51,7 @@ export const Start = () => {
 
       if (result?.encryptedKeys) {
         setShowStart(false);
-        navigate('/bsv-wallet');
+        navigate('/rxd-wallet');
         return;
       }
       setShowStart(true);
@@ -62,8 +61,8 @@ export const Start = () => {
   return (
     <Show when={showStart}>
       <Content>
-        <YoursLogo src={yoursLogo} />
-        <TitleText theme={theme}>Yours Wallet</TitleText>
+        <OrbitalLogo />
+        <TitleText theme={theme}>Orbital Wallet</TitleText>
         <Text theme={theme} style={{ margin: '0.25rem 0 1rem 0' }}>
           An open source project.
         </Text>
@@ -73,11 +72,6 @@ export const Start = () => {
           type="secondary-outline"
           label="Restore Wallet"
           onClick={() => navigate('/restore-wallet')}
-        />
-        <GithubIcon
-          style={{ marginTop: '1rem' }}
-          src={gihubIcon}
-          onClick={() => window.open('https://github.com/yours-org', '_blank')}
         />
       </Content>
     </Show>

@@ -1,26 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import relayXLogo from '../../assets/relayx.svg';
-import twetchLogo from '../../assets/twetch.svg';
-import pandaLogo from '../../assets/panda.svg';
-import yoursWhiteLogo from '../../assets/yours-white-logo.svg';
-import yoursLogo from '../../assets/yours-logo.png';
 import otherWallet from '../../assets/other-wallet.svg';
 import wifWallet from '../../assets/wif-wallet.svg';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PageLoader } from '../../components/PageLoader';
-import { HeaderText, Text, YoursLogo } from '../../components/Reusable';
+import { HeaderText, Text, OrbitalLogo } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { ToggleSwitch } from '../../components/ToggleSwitch';
 import { WalletRow } from '../../components/WalletRow';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { SupportedWalletImports, useKeys } from '../../hooks/useKeys';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { ColorThemeProps } from '../../theme';
 import { sleep } from '../../utils/sleep';
+import { generateSeedAndStoreEncrypted } from '../../utils/crypto';
+import { unlock } from '../../utils/keyring';
+
+export type SupportedWalletImports = 'wif';
 
 const Content = styled.div`
   display: flex;
@@ -71,17 +69,6 @@ const WalletWrapper = styled.div`
   align-items: center;
 `;
 
-const YoursWalletContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.black};
-  width: 1.25rem;
-  height: 1.25rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-`;
-
 const WalletLogo = styled.img`
   width: auto;
   height: 2.25rem;
@@ -99,16 +86,15 @@ export const RestoreWallet = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [step, setStep] = useState(1);
+  // Starting at step 2. Step 1 can be reenabled if needed.
+  const [step, setStep] = useState(2);
   const [seedWords, setSeedWords] = useState<string>('');
   const { addSnackbar } = useSnackbar();
-  const { generateSeedAndStoreEncrypted } = useKeys();
   const { hideMenu, showMenu } = useBottomMenu();
   const [loading, setLoading] = useState(false);
   const [isExpertImport, setIsExpertImport] = useState(false);
   const [importWallet, setImportWallet] = useState<SupportedWalletImports | undefined>();
   const [walletDerivation, setWalletDerivation] = useState<string | null>(null);
-  const [ordDerivation, setOrdDerivation] = useState<string | null>(null);
   const [identityDerivation, setIdentityDerivation] = useState<string | null>(null);
   useEffect(() => {
     hideMenu();
@@ -137,18 +123,14 @@ export const RestoreWallet = () => {
 
     // Some artificial delay for the loader
     await sleep(50);
-    const mnemonic = generateSeedAndStoreEncrypted(
-      password,
-      seedWords,
-      walletDerivation,
-      ordDerivation,
-      identityDerivation,
-      importWallet,
-    );
+    const mnemonic = await generateSeedAndStoreEncrypted(password, seedWords, walletDerivation, identityDerivation);
+    
     if (!mnemonic) {
       addSnackbar('An error occurred while restoring the wallet!', 'error');
       return;
     }
+
+    await unlock(password);
 
     setLoading(false);
     setStep(4);
@@ -161,24 +143,6 @@ export const RestoreWallet = () => {
       return;
     }
     setStep(2);
-  };
-
-  const getRestoreTitle = () => {
-    return importWallet === 'yours'
-      ? 'Restore Yours wallet'
-      : importWallet === 'panda'
-        ? 'Restore Panda wallet'
-        : importWallet === 'relayx'
-          ? 'Restore Relay wallet'
-          : importWallet === 'twetch'
-            ? 'Restore Twetch wallet'
-            : 'Restore wallet';
-  };
-
-  const getRestoreDescription = () => {
-    return importWallet
-      ? 'Enter your seed phrase'
-      : 'Enter a seed phrase and use custom derivation paths to import a wallet from anywhere!';
   };
 
   const passwordStep = (
@@ -212,9 +176,9 @@ export const RestoreWallet = () => {
   const enterSeedStep = (
     <>
       <Content>
-        <HeaderText theme={theme}>{getRestoreTitle()}</HeaderText>
+        <HeaderText theme={theme}>Restore wallet</HeaderText>
         <Text theme={theme} style={{ marginBottom: '1rem', width: '90%' }}>
-          {getRestoreDescription()}
+          Enter your seed phrase
         </Text>
         <FormContainer onSubmit={() => setStep(3)}>
           <SeedInput
@@ -230,14 +194,6 @@ export const RestoreWallet = () => {
               type="text"
               value={walletDerivation ?? ''}
               onChange={(e) => setWalletDerivation(e.target.value)}
-              style={{ margin: '0.1rem', width: '85%' }}
-            />
-            <Input
-              theme={theme}
-              placeholder="Ordinal Derivation ex. m/44'/236'/1'/0/0"
-              type="text"
-              value={ordDerivation ?? ''}
-              onChange={(e) => setOrdDerivation(e.target.value)}
               style={{ margin: '0.1rem', width: '85%' }}
             />
             <Input
@@ -261,7 +217,7 @@ export const RestoreWallet = () => {
             Make sure you are in a safe place and no one is watching.
           </Text>
           <Button theme={theme} type="primary" label="Next" isSubmit />
-          <Button theme={theme} type="secondary" label="Go back" onClick={() => setStep(1)} />
+          <Button theme={theme} type="secondary" label="Go back" onClick={() => navigate('/')} />
         </FormContainer>
       </Content>
     </>
@@ -275,38 +231,10 @@ export const RestoreWallet = () => {
           onClick={() => handleWalletSelection(wallet)}
           element={
             <>
-              <Show when={wallet === 'yours'}>
-                <WalletWrapper>
-                  <YoursWalletContainer theme={theme}>
-                    <WalletLogo src={yoursWhiteLogo} style={{ width: '1.25rem' }} />
-                  </YoursWalletContainer>
-                  <WalletText theme={theme}>Yours</WalletText>
-                </WalletWrapper>
-              </Show>
-              <Show when={wallet === 'panda'}>
-                <WalletWrapper>
-                  <YoursWalletContainer theme={theme}>
-                    <WalletLogo src={pandaLogo} style={{ width: '1.25rem', margin: '0.25rem 0 0 0.1rem' }} />
-                  </YoursWalletContainer>
-                  <WalletText theme={theme}>Panda</WalletText>
-                </WalletWrapper>
-              </Show>
-              <Show when={wallet === 'relayx'}>
-                <WalletWrapper>
-                  <WalletLogo src={relayXLogo} />
-                  <WalletText theme={theme}>RelayX</WalletText>
-                </WalletWrapper>
-              </Show>
-              <Show when={wallet === 'twetch'}>
-                <WalletWrapper>
-                  <WalletLogo src={twetchLogo} />
-                  <WalletText theme={theme}>Twetch</WalletText>
-                </WalletWrapper>
-              </Show>
               <Show when={!wallet}>
                 <WalletWrapper>
                   <WalletLogo src={otherWallet} />
-                  <WalletText theme={theme}>Other</WalletText>
+                  <WalletText theme={theme}>Restore with seed phrase</WalletText>
                 </WalletWrapper>
               </Show>
               <Show when={wallet === 'wif'}>
@@ -329,7 +257,7 @@ export const RestoreWallet = () => {
         <Text theme={theme} style={{ marginBottom: '1rem', width: '90%' }}>
           Select the wallet you'd like to restore from
         </Text>
-        {availableWallets(['yours', 'panda', 'relayx', 'twetch', undefined, 'wif'])}
+        {availableWallets([undefined, 'wif'])}
         <Button theme={theme} type="secondary" label="Go back" onClick={() => navigate('/')} />
       </Content>
     </>
@@ -338,7 +266,7 @@ export const RestoreWallet = () => {
   const successStep = (
     <>
       <Content>
-        <YoursLogo src={yoursLogo} />
+        <OrbitalLogo />
         <HeaderText theme={theme}>Success!</HeaderText>
         <Text theme={theme} style={{ marginBottom: '1rem' }}>
           Your wallet has been restored.

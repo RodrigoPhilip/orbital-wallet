@@ -15,7 +15,10 @@
     "isolatedModules": false,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["chrome"]
+    "types": ["chrome"],
+    "paths": {
+      "rxd-wasm": ["./src/rxd-wasm"]
+    }
   },
   "include": ["src"]
 }

@@ -1,9 +1,9 @@
-const createPandaMethod = (type) => {
+const createOrbitalMethod = (type) => {
   return async (params) => {
     return new Promise((resolve, reject) => {
       // Send request
       const messageId = `${type}-${Date.now()}-${Math.random()}`;
-      const requestEvent = new CustomEvent('PandaRequest', {
+      const requestEvent = new CustomEvent('OrbitalRequest', {
         detail: { messageId, type, params },
       });
       document.dispatchEvent(requestEvent);
@@ -24,7 +24,7 @@ const createPandaMethod = (type) => {
   };
 };
 
-const createPandaEventEmitter = () => {
+const createOrbitalEventEmitter = () => {
   const eventListeners = new Map(); // Object to store event listeners
   const whitelistedEvents = ['signedOut', 'networkChanged']; // Whitelisted event names
 
@@ -64,49 +64,44 @@ const createPandaEventEmitter = () => {
 
 const provider = {
   isReady: true,
-  ...createPandaEventEmitter(),
-  connect: createPandaMethod('connect'),
-  disconnect: createPandaMethod('disconnect'),
-  isConnected: createPandaMethod('isConnected'),
-  getPubKeys: createPandaMethod('getPubKeys'),
-  getAddresses: createPandaMethod('getAddresses'),
-  getNetwork: createPandaMethod('getNetwork'),
-  getBalance: createPandaMethod('getBalance'),
-  getOrdinals: createPandaMethod('getOrdinals'),
-  sendBsv: createPandaMethod('sendBsv'),
-  transferOrdinal: createPandaMethod('transferOrdinal'),
-  signMessage: createPandaMethod('signMessage'),
-  broadcast: createPandaMethod('broadcast'),
-  getSignatures: createPandaMethod('getSignatures'),
-  getSocialProfile: createPandaMethod('getSocialProfile'),
-  getPaymentUtxos: createPandaMethod('getPaymentUtxos'),
-  getExchangeRate: createPandaMethod('getExchangeRate'),
-  purchaseOrdinal: createPandaMethod('purchaseOrdinal'),
-  generateTaggedKeys: createPandaMethod('generateTaggedKeys'),
-  getTaggedKeys: createPandaMethod('getTaggedKeys'),
-  inscribe: createPandaMethod('sendBsv'),
-  encrypt: createPandaMethod('encrypt'),
-  decrypt: createPandaMethod('decrypt'),
+  ...createOrbitalEventEmitter(),
+  connect: createOrbitalMethod('connect'),
+  disconnect: createOrbitalMethod('disconnect'),
+  isConnected: createOrbitalMethod('isConnected'),
+  getPubKeys: createOrbitalMethod('getPubKeys'),
+  getAddresses: createOrbitalMethod('getAddresses'),
+  getNetwork: createOrbitalMethod('getNetwork'),
+  getBalance: createOrbitalMethod('getBalance'),
+  getTokens: createOrbitalMethod('getTokens'),
+  sendRxd: createOrbitalMethod('sendRxd'),
+  transferToken: createOrbitalMethod('transferToken'),
+  signMessage: createOrbitalMethod('signMessage'),
+  broadcast: createOrbitalMethod('broadcast'),
+  getSignatures: createOrbitalMethod('getSignatures'),
+  getSocialProfile: createOrbitalMethod('getSocialProfile'),
+  getPaymentUtxos: createOrbitalMethod('getPaymentUtxos'),
+  getExchangeRate: createOrbitalMethod('getExchangeRate'),
+  encrypt: createOrbitalMethod('encrypt'),
+  decrypt: createOrbitalMethod('decrypt'),
 };
 
-window.panda = provider;
-window.yours = provider;
+window.orbital = provider;
 
-document.addEventListener('PandaEmitEvent', (event) => {
+document.addEventListener('OrbitalEmitEvent', (event) => {
   const { action, params } = event.detail;
-  // Check if window.panda is defined and has event listeners for the action
-  if (window.panda && window.panda.eventListeners && window.panda.eventListeners.has(action)) {
-    const listeners = window.panda.eventListeners.get(action);
+  // Check if window.orbital is defined and has event listeners for the action
+  if (window.orbital && window.orbital.eventListeners && window.orbital.eventListeners.has(action)) {
+    const listeners = window.orbital.eventListeners.get(action);
     // Trigger each listener with the provided params
     listeners.forEach((callback) => callback(params));
   }
 });
 
-document.addEventListener('PandaEmitEvent', (event) => {
+document.addEventListener('OrbitalEmitEvent', (event) => {
   const { action, params } = event.detail;
-  // Check if window.yours is defined and has event listeners for the action
-  if (window.yours && window.yours.eventListeners && window.yours.eventListeners.has(action)) {
-    const listeners = window.yours.eventListeners.get(action);
+  // Check if window.orbital is defined and has event listeners for the action
+  if (window.orbital && window.orbital.eventListeners && window.orbital.eventListeners.has(action)) {
+    const listeners = window.orbital.eventListeners.get(action);
     // Trigger each listener with the provided params
     listeners.forEach((callback) => callback(params));
   }

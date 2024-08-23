@@ -4,7 +4,6 @@ import { ColorThemeProps } from '../theme';
 import { HeaderText, Text } from './Reusable';
 import { formatNumberWithCommasAndDecimals, formatUSD } from '../utils/format';
 import { Show } from './Show';
-import { BSV_DECIMAL_CONVERSION } from '../utils/constants';
 
 const Container = styled.div<ColorThemeProps>`
   display: flex;
@@ -15,6 +14,14 @@ const Container = styled.div<ColorThemeProps>`
   width: 90%;
   border-radius: 0.5rem;
   margin: 0.25rem;
+  cursor: pointer;
+`;
+
+const ImageWrapper = styled.div<{ size?: string }>`
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: 1rem;
+  border-radius: 50%;
 `;
 
 const Icon = styled.img<{ size?: string }>`
@@ -45,44 +52,39 @@ const BalanceWrapper = styled.div`
 `;
 
 export type AssetRowProps = {
-  icon: string;
+  icon: React.ReactNode;
   ticker: string;
   balance: number;
-  usdBalance: number;
-  isLock?: boolean;
-  nextUnlock?: number;
+  showUsd?: boolean;
+  usdBalance?: number;
+  isPhotons?: boolean;
   onClick?: () => void;
 };
 
 export const AssetRow = (props: AssetRowProps) => {
-  const { icon, ticker, balance, usdBalance, isLock, nextUnlock, onClick } = props;
+  const { icon, ticker, balance, showUsd, usdBalance, isPhotons, onClick } = props;
   const { theme } = useTheme();
-  const isDisplaySat = isLock && balance < 0.0001;
   return (
-    <Container style={{ cursor: isLock ? 'pointer' : undefined }} onClick={onClick} theme={theme}>
+    <Container onClick={onClick} theme={theme}>
       <TickerWrapper>
-        <Show when={!!icon && icon.length > 0}>
-          <Icon src={icon} />
+        <Show when={!!icon}>
+          {typeof icon === 'string' ? <Icon src={icon} /> : <ImageWrapper>{icon}</ImageWrapper>}
         </Show>
         <TickerTextWrapper>
           <HeaderText style={{ fontSize: '1rem' }} theme={theme}>
             {ticker}
           </HeaderText>
-          <Text style={{ margin: '0', textAlign: 'left' }} theme={theme}>
-            {isLock ? 'Next unlock' : 'Balance'}
-          </Text>
         </TickerTextWrapper>
       </TickerWrapper>
       <BalanceWrapper>
         <HeaderText style={{ textAlign: 'right', fontSize: '1rem' }} theme={theme}>
-          {`${formatNumberWithCommasAndDecimals(
-            isDisplaySat ? balance * BSV_DECIMAL_CONVERSION : balance,
-            isDisplaySat ? 0 : 3,
-          )}${isLock ? (isDisplaySat ? `${balance === 0.00000001 ? ' SAT' : ' SATS'}` : ' BSV') : ''}`}
+          {formatNumberWithCommasAndDecimals(balance, isPhotons ? 0 : 3)}
         </HeaderText>
-        <Text style={{ textAlign: 'right', margin: '0' }} theme={theme}>
-          {isLock ? `Block ${nextUnlock}` : formatUSD(usdBalance)}
-        </Text>
+        {showUsd && (
+          <Text style={{ textAlign: 'right', margin: '0' }} theme={theme}>
+            {formatUSD(usdBalance || 0)}
+          </Text>
+        )}
       </BalanceWrapper>
     </Container>
   );

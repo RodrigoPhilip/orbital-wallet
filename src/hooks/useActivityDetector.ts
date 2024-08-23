@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { storage } from '../utils/storage';
+import { locked } from '../signals';
+import { useSignals } from '@preact/signals-react/runtime';
 
-export const useActivityDetector = (isWalletLocked: boolean) => {
+export const useActivityDetector = () => {
+  useSignals();
   useEffect(() => {
     const handleActivity = async () => {
-      if (isWalletLocked) return;
+      if (locked.value) return;
 
       const timestamp = Date.now();
       storage.set({ lastActiveTime: timestamp });
@@ -15,5 +18,5 @@ export const useActivityDetector = (isWalletLocked: boolean) => {
     return () => {
       document.removeEventListener('mousemove', handleActivity);
     };
-  }, [isWalletLocked]);
+  }, []);
 };

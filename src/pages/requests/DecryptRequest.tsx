@@ -6,12 +6,11 @@ import { PageLoader } from '../../components/PageLoader';
 import { ConfirmContent, FormContainer, HeaderText, Text } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { useBsv, Web3DecryptRequest } from '../../hooks/useBsv';
-import { useKeys } from '../../hooks/useKeys';
+import { useRxd, Web3DecryptRequest } from '../../hooks/useRxd';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { useWeb3Context } from '../../hooks/useWeb3Context';
-import { decryptUsingPrivKey } from '../../utils/crypto';
+import { decryptUsingPrivKey, retrieveKeys } from '../../utils/crypto';
 import { getPrivateKeyFromTag, Keys } from '../../utils/keys';
 import { sleep } from '../../utils/sleep';
 import { storage } from '../../utils/storage';
@@ -35,18 +34,17 @@ export const DecryptRequest = (props: DecryptRequestProps) => {
   const [decryptedMessages, setDecryptedMessages] = useState<string[] | undefined>(undefined);
   const { addSnackbar, message } = useSnackbar();
   const { isPasswordRequired } = useWeb3Context();
-  const { retrieveKeys } = useKeys();
   const [hasDecrypted, setHasDecrypted] = useState(false);
-  const { isProcessing, setIsProcessing } = useBsv();
+  const { isProcessing, setIsProcessing } = useRxd();
 
   useEffect(() => {
-    if (hasDecrypted || isPasswordRequired || !encryptedMessages || !retrieveKeys) return;
+    if (hasDecrypted || isPasswordRequired || !encryptedMessages) return;
     handleDecryption();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasDecrypted, isPasswordRequired, encryptedMessages, retrieveKeys]);
+  }, [hasDecrypted, isPasswordRequired, encryptedMessages]);
 
   useEffect(() => {
-    setSelected('bsv');
+    setSelected('rxd');
   }, [setSelected]);
 
   useEffect(() => {
@@ -85,7 +83,7 @@ export const DecryptRequest = (props: DecryptRequestProps) => {
     }
 
     const keys = (await retrieveKeys(passwordConfirm)) as Keys;
-    const PrivKey = getPrivateKeyFromTag(encryptedMessages.tag ?? { label: 'panda', id: 'identity', domain: '' }, keys);
+    const PrivKey = getPrivateKeyFromTag(encryptedMessages.tag ?? { label: 'orbital', id: 'identity', domain: '' }, keys);
 
     const decrypted = decryptUsingPrivKey(encryptedMessages.messages, PrivKey);
 

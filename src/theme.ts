@@ -17,11 +17,11 @@ export type ColorThemeProps = {
 export const defaultTheme: Theme = {
   darkAccent: '#17191E',
   mainBackground: '#010101',
-  lightAccent: '#A1FF8B',
-  primaryButton: '#34D399',
+  lightAccent: '#64ffda',
+  primaryButton: '#304ffe',
   white: '#FFFFFF',
   black: '#000000',
-  gray: '#98A2B3',
+  gray: '#CBCBCB',
   errorRed: '#FF4646',
   warning: '#F79009',
 };

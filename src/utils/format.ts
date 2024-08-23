@@ -26,13 +26,17 @@ export const truncate = (str: string, startLength: number, endLength: number) =>
   return `${startStr}...${endStr}`;
 };
 
-export const formatNumberWithCommasAndDecimals = (number: number, decimalPlaces: number = 2): string => {
+export const formatNumberWithCommasAndDecimals = (
+  number: number,
+  decimalPlaces: number = 2,
+  minimumDecimalPlaces?: number,
+): string => {
   if (isNaN(number)) {
     return 'Invalid Number';
   }
 
   const options: Intl.NumberFormatOptions = {
-    minimumFractionDigits: decimalPlaces,
+    minimumFractionDigits: minimumDecimalPlaces === undefined ? decimalPlaces : minimumDecimalPlaces,
     maximumFractionDigits: decimalPlaces,
   };
 

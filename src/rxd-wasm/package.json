@@ -1,0 +1,14 @@
+{
+  "name": "rxd-wasm",
+  "version": "2.0.2",
+  "files": [
+    "rxd_wasm_bg.wasm",
+    "rxd_wasm.js",
+    "rxd_wasm.d.ts"
+  ],
+  "module": "rxd_wasm.js",
+  "types": "rxd_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

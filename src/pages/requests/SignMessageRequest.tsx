@@ -7,7 +7,7 @@ import { PageLoader } from '../../components/PageLoader';
 import { ConfirmContent, FormContainer, HeaderText, Text } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { useBottomMenu } from '../../hooks/useBottomMenu';
-import { useBsv, Web3SignMessageRequest } from '../../hooks/useBsv';
+import { useRxd, Web3SignMessageRequest } from '../../hooks/useRxd';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { useWeb3Context } from '../../hooks/useWeb3Context';
@@ -56,10 +56,10 @@ export const SignMessageRequest = (props: SignMessageRequestProps) => {
   const { addSnackbar, message } = useSnackbar();
   const { isPasswordRequired } = useWeb3Context();
 
-  const { isProcessing, setIsProcessing, signMessage } = useBsv();
+  const { isProcessing, setIsProcessing, signMessage } = useRxd();
 
   useEffect(() => {
-    setSelected('bsv');
+    setSelected('rxd');
   }, [setSelected]);
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export const SignMessageRequest = (props: SignMessageRequestProps) => {
             when={!!messageToSign.tag?.label}
             whenFalseContent={
               <>
-                <TagText theme={theme}>{`Label: panda`}</TagText>
+                <TagText theme={theme}>{`Label: orbital`}</TagText>
                 <TagText theme={theme}>{`Id: identity`}</TagText>
               </>
             }

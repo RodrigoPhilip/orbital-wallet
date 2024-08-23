@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import { ColorThemeProps } from '../theme';
+import { LuOrbit } from 'react-icons/lu';
 
 export const HeaderText = styled.h1<ColorThemeProps>`
   font-size: 1.35rem;
@@ -89,9 +90,11 @@ export const ReceiveContent = styled(MainContent)`
   height: calc(100% - 3.75rem);
 `;
 
-export const YoursLogo = styled.img`
+export const OrbitalLogo = styled(LuOrbit)`
   width: 5rem;
   height: 5rem;
+  color: #64ffda;
+  filter: drop-shadow(0 0 15px #00bfa5);
 `;
 
 export const GithubIcon = styled.img`

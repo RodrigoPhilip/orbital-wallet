@@ -5,13 +5,12 @@ import { Button } from '../../components/Button';
 import { HeaderText, Text } from '../../components/Reusable';
 import { Show } from '../../components/Show';
 import { BottomMenuContext } from '../../contexts/BottomMenuContext';
-import { useBsv } from '../../hooks/useBsv';
-import { useOrds } from '../../hooks/useOrds';
 import { useSnackbar } from '../../hooks/useSnackbar';
 import { useTheme } from '../../hooks/useTheme';
 import { storage } from '../../utils/storage';
 import greenCheck from '../../assets/green-check.svg';
 import { ColorThemeProps } from '../../theme';
+import { identityPubKey, rxdPubKey } from '../../signals';
 
 const Container = styled.div`
   display: flex;
@@ -60,8 +59,6 @@ export const ConnectRequest = (props: ConnectRequestProps) => {
   const context = useContext(BottomMenuContext);
   const { addSnackbar } = useSnackbar();
   const [isDecided, setIsDecided] = useState(false);
-  const { bsvPubKey, identityPubKey } = useBsv();
-  const { ordPubKey } = useOrds();
 
   useEffect(() => {
     if (!context) return;
@@ -73,12 +70,12 @@ export const ConnectRequest = (props: ConnectRequestProps) => {
   useEffect(() => {
     if (isDecided) return;
     if (thirdPartyAppRequestData && !thirdPartyAppRequestData.isAuthorized) return;
-    if (!bsvPubKey || !ordPubKey) return;
+    if (!rxdPubKey.value) return;
     if (!window.location.href.includes('localhost')) {
       chrome.runtime.sendMessage({
         action: 'userConnectResponse',
         decision: 'approved',
-        pubKeys: { bsvPubKey, ordPubKey, identityPubKey },
+        pubKeys: { rxdPubKey: rxdPubKey.value, identityPubKey: identityPubKey.value },
       });
       storage.remove('connectRequest');
       // We don't want the window to stay open after a successful connection. The 10ms timeout is used because of some weirdness with how chrome.sendMessage() works
@@ -86,7 +83,7 @@ export const ConnectRequest = (props: ConnectRequestProps) => {
         if (popupId) chrome.windows.remove(popupId);
       }, 1000);
     }
-  }, [bsvPubKey, ordPubKey, popupId, thirdPartyAppRequestData, isDecided, identityPubKey]);
+  }, [popupId, thirdPartyAppRequestData, isDecided]);
 
   useEffect(() => {
     const onbeforeunloadFn = () => {
@@ -114,7 +111,7 @@ export const ConnectRequest = (props: ConnectRequestProps) => {
         chrome.runtime.sendMessage({
           action: 'userConnectResponse',
           decision: 'approved',
-          pubKeys: { bsvPubKey, ordPubKey, identityPubKey },
+          pubKeys: { rxdPubKey: rxdPubKey.value, identityPubKey: identityPubKey.value },
         });
         addSnackbar(`Approved`, 'success');
       } else {
