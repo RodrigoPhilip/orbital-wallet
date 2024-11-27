@@ -15,7 +15,7 @@ npm run start
 
 Build background.js:
 ```
-npm run worker:build
+npm run worker: build
 ```
 
 Build extension:
@@ -23,7 +23,7 @@ Build extension:
 npm run build
 ```
 
-Extension will be in `build` directory
+The extension will be in the `build` directory.
 
 ## License
 
